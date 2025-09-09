@@ -1,4 +1,4 @@
-package com.pm.apigateway;
+package com.pm.apigateway.filter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -26,7 +26,15 @@ public class JwtValidationGatewayFilterFactory extends AbstractGatewayFilterFact
 
             if(token == null || !token.startsWith("Bearer ")) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
             }
-        }
+
+            return webClient.get()
+                    .uri("/validate")
+                    .header(HttpHeaders.AUTHORIZATION, token)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .then(chain.filter(exchange));
+        };
     }
 }
